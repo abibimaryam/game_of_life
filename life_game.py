@@ -175,7 +175,7 @@ def game_of_life():
     while (infinite or gen < generations) and not stop_flag.get():
         draw_grid(canvas_game, grid, cell_size)
         main.update()
-        time.sleep(0.2)
+        time.sleep(3)
         grid = next_generation(grid, neighbors, birth_rules, survive_rules)
         gen += 1
 
