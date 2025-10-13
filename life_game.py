@@ -168,6 +168,7 @@ def game_of_life():
 
     tk.Button(main, text="Остановить", command=stop_game, bg="red", fg="white").pack(pady=5)
 
+
     draw_grid(canvas_game, grid, cell_size)
     gen = 0
 
@@ -175,7 +176,7 @@ def game_of_life():
     while (infinite or gen < generations) and not stop_flag.get():
         draw_grid(canvas_game, grid, cell_size)
         main.update()
-        time.sleep(3)
+        time.sleep(0.5)
         grid = next_generation(grid, neighbors, birth_rules, survive_rules)
         gen += 1
 
