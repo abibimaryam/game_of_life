@@ -4,7 +4,7 @@ import random
 import copy
 
 
-# === Создание шаблона соседей ===
+# Создание шаблона соседей
 def create_neighbor_pattern():
     size = 5
     pattern = [[0 for _ in range(size)] for _ in range(size)]
@@ -52,7 +52,7 @@ def create_neighbor_pattern():
     return neighbors
 
 
-# === Подсчёт соседей ===
+#  Подсчёт соседей
 def count_neighbors(grid, x, y, neighbors):
     n = len(grid)
     count = 0
@@ -63,7 +63,7 @@ def count_neighbors(grid, x, y, neighbors):
     return count
 
 
-# === Следующее поколение ===
+#  Следующее поколение 
 def next_generation(grid, neighbors, birth_rules, survive_rules):
     n = len(grid)
     new_grid = copy.deepcopy(grid)
@@ -77,7 +77,7 @@ def next_generation(grid, neighbors, birth_rules, survive_rules):
     return new_grid
 
 
-# === Приложение ===
+#  Приложение 
 class LifeApp:
     def __init__(self, root):
         self.root = root
@@ -89,6 +89,7 @@ class LifeApp:
 
         # стандартные настройки
         self.mode = 1
+        self.neigh_label = "8 соседей"
         self.neighbors = [(dx, dy) for dx in (-1, 0, 1)
                           for dy in (-1, 0, 1) if not (dx == 0 and dy == 0)]
         self.birth_rules = [3]
@@ -101,7 +102,7 @@ class LifeApp:
         self.create_ui()
         self.draw_grid()
 
-    # === Интерфейс ===
+    # Интерфейс 
     def create_ui(self):
         top = tk.Frame(self.root)
         top.pack(side=tk.TOP, fill=tk.X, pady=5)
@@ -135,38 +136,55 @@ class LifeApp:
         self.canvas.pack(padx=10, pady=10)
         self.canvas.bind("<Button-1>", self.toggle_cell)
 
-    # === Выбор режима ===
+    # Выбор режима
     def choose_mode(self):
         mode = simpledialog.askinteger(
             "Режим",
-            "Выберите режим:\n1) Стандартные правила\n2) Свой шаблон соседей\n3) Свои правила и шаблон соседей"
+            "Выберите режим:\n"
+            "1) Стандартные правила  8 соседей\n"
+            "2) Стандартные правила крест (4 соседа)\n"
+            "3) Свои правила + свой шаблон соседей"
         )
 
         if mode == 1:
+            # 8 соседей (Мура)
             self.neighbors = [(dx, dy) for dx in (-1, 0, 1)
                               for dy in (-1, 0, 1) if not (dx == 0 and dy == 0)]
             self.birth_rules = [3]
             self.survive_rules = [2, 3]
             self.mode = 1
+            self.neigh_label = "8 соседей"
 
         elif mode == 2:
-            # messagebox.showinfo("Шаблон", "Нарисуйте шаблон соседей (центр — красный квадрат).")
-            self.neighbors = create_neighbor_pattern()
+            # крест: 4 соседа (фон Неймана)
+            self.neighbors = [(1, 0), (-1, 0), (0, 1), (0, -1)]
             self.birth_rules = [3]
             self.survive_rules = [2, 3]
             self.mode = 2
+            self.neigh_label = "крест (4 соседа)"
 
         elif mode == 3:
-            # messagebox.showinfo("Шаблон", "Нарисуйте шаблон соседей (центр — красный квадрат).")
+            # свой шаблон и правила
             self.neighbors = create_neighbor_pattern()
-            self.birth_rules = list(map(int, simpledialog.askstring("Правила", "Введите числа соседей для оживления (через пробел):").split()))
-            self.survive_rules = list(map(int, simpledialog.askstring("Правила", "Введите числа соседей для выживания (через пробел):").split()))
+            br = simpledialog.askstring("Правила", "Введите числа соседей для оживления (через пробел):")
+            sr = simpledialog.askstring("Правила", "Введите числа соседей для выживания (через пробел):")
+            try:
+                self.birth_rules = list(map(int, br.split())) if br else []
+                self.survive_rules = list(map(int, sr.split())) if sr else []
+            except Exception:
+                messagebox.showerror("Ошибка", "Неверный формат правил.")
+                return
             self.mode = 3
+            self.neigh_label = "пользовательский шаблон"
 
         else:
             messagebox.showerror("Ошибка", "Неверный режим")
+            return
 
-    # === Игровая логика ===
+        self.generation = 0
+        self.draw_grid()
+
+    #  Игровая логика 
     def apply_size(self):
         val = int(self.size_spin.get())
         self.n = val
@@ -196,7 +214,9 @@ class LifeApp:
                     (j + 1) * self.cell_size, (i + 1) * self.cell_size,
                     fill=color, outline="#ddd"
                 )
-        self.info_label.config(text=f"Поколение: {self.generation} | Режим: {self.mode}")
+        self.info_label.config(
+            text=f"Поколение: {self.generation} | Режим: {self.mode} | Шаблон: {self.neigh_label} | Правила B{''.join(map(str,self.birth_rules))}/S{''.join(map(str,self.survive_rules))}"
+        )
 
     def step(self):
         max_gen = int(self.gen_spin.get())
